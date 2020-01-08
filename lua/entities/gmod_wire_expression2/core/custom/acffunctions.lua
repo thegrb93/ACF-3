@@ -277,7 +277,7 @@ e2function number entity:acfHitClip(vector HitPos)
 	if not validPhysics(this) then return 0 end
 	if RestrictInfo(self, this) then return 0 end
 
-	return ACF_CheckClips(this, HitPos) and 1 or 0
+	return ACF.HitClip(this, HitPos) and 1 or 0
 end
 
 -- Returns all the linked entities

@@ -319,7 +319,7 @@ SF.AddHook("postload", function()
 		if not ValidPhysics(This) then return false end
 		if RestrictInfo(SF.instance.player, This) then return false end
 
-		return ACF_CheckClips(This, HitPos)
+		return ACF.HitClip(This, HitPos)
 	end
 
 	-- Returns the ACF links associated with the entity

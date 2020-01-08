@@ -69,6 +69,39 @@ local function GetEnts(Ent)
 
 	return Phys, Pare
 end
+
+-- checks the visclips of an entity, to determine if round should pass through or not
+-- ignores anything that's not a prop (acf components, seats) or with nil volume (makesphere props)
+local function HitClip(Ent, Pos)
+	if not IsValid(Ent) or Ent.ClipData == nil or Ent:GetClass() ~= "prop_physics" or (Ent:GetPhysicsObject():GetVolume() == nil) then return false end -- makesphere
+
+	local Clip
+	local Normal
+	local Origin
+
+	for I = 1, #Ent.ClipData do
+		Clip   = Ent.ClipData[I]
+		Normal = Ent:LocalToWorldAngles(Clip.n):Forward()
+		Origin = Ent:LocalToWorld(Ent:OBBCenter()) + Normal * Clip.d
+
+		--debugoverlay.BoxAngles( origin, Vector(0,-24,-24), Vector(1,24,24), Ent:LocalToWorldAngles(Ent.ClipData[i]["n"]), 15, Color(255,0,0,32) )
+		if Normal:Dot((Origin - Pos):GetNormalized()) > 0 then return true end
+	end
+
+	return false
+end
+
+local function Trace(TraceData)
+	local T = TraceLine(TraceData)
+
+	if T.HitNonWorld and HitClip(T.Entity, T.HitPos) then
+		TraceData.filter[#TraceData.filter + 1] = T.Entity
+
+		return Trace(TraceData)
+	end
+
+	return T
+end
 -------------------------------------------------
 
 function ACF_UpdateVisualHealth(Entity)
@@ -435,7 +468,7 @@ do -- ACF Damage -----------------------------------
 	end
 end ------------------------------------------------
 
-function ACF_HasConstraint(Ent)
+function ACF.HasConstraint(Ent)
 	if Ent.Constraints then
 		for _, V in pairs(Ent.Constraints) do
 			if V.Type ~= "NoCollide" then
@@ -637,3 +670,5 @@ ACF_GetEnts 				= GetEnts
 ACF_GetAncestor 			= GetAncestor
 ACF_CheckLegal 				= CheckLegal
 ACF_Check					= Check
+ACF.HitClip 				= HitClip
+ACF.Trace	   				= Trace
